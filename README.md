@@ -3,6 +3,11 @@
 
 In order to run, python must be installed
 
+pip install --upgrade google-api-python-client
+pip install google-auth-oauthlib
+https://console.cloud.google.com/apis/credentials
+ - Save the credentials json and store it in same directory as the python file
+
 Open shell to this directory
 	(Shift right click on directory
 	"Open Power Shell Window Here")

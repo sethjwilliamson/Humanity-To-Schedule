@@ -3,6 +3,9 @@
 from __future__ import print_function
 import pickle   #pickle rick
 import os.path
+# pip install --upgrade google-api-python-client
+# pip install google-auth-oauthlib
+# https://console.cloud.google.com/apis/credentials
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -36,18 +39,20 @@ def main():
     service = build('sheets', 'v4', credentials=creds)
 
 
+    ssId = input("Input Speadsheet ID (The string after URL): ")
+
     print("")
     print("")
-    print("Put custom Humanity report into")
+    print("Put custom Humanity report into " + ssId)
     print("") # Google Sheets URL
-    print("");
+    print("")
     print("Humanity > Reports > Custom Reports")
     print("Report Type: Shifts Scheduled, This Week")
     print("Select Employee, Start Day, Start Time, End Time")
     print("Save as CSV and replace values in Google Sheets Report")
     print("")
     print("")
-    print("Put custom Humanity report into")
+    print("Put custom Humanity report into " + ssId)
     print("") # Google Sheets URL
     print("")
     print("Humanity > Reports > Daily Peak Hours")
@@ -58,12 +63,12 @@ def main():
     print("")
     semester = input("Input Semester Name: ")
 
-    #toSchedule(service, semester)
-    toHeatmap(service, semester)
+    #toSchedule(service, semester, ssId)
+    toHeatmap(service, semester, ssId)
 
-def toSchedule(service, semester):
+def toSchedule(service, semester, ssId):
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId="", range="A:D").execute()
+    result = sheet.values().get(spreadsheetId=ssId, range="A:D").execute()
     values = result.get('values', [])
 
     mostRecentDay = values[1][1]
@@ -103,13 +108,13 @@ def toSchedule(service, semester):
                 employeesArr[i].append(currentEmployee[1][j][k])
 
     # Update Google sheet
-    service.spreadsheets().values().update(spreadsheetId="", range= semester + "!A3:AE", valueInputOption="USER_ENTERED", body={"values" : employeesArr}).execute()
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!A3:AE", valueInputOption="USER_ENTERED", body={"values" : employeesArr}).execute()
 
-def toHeatmap(service, semester):
+def toHeatmap(service, semester, ssId):
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId="", range="U3:AO16").execute()
+    result = sheet.values().get(spreadsheetId=ssId, range="U3:AO16").execute()
     values = result.get('values', [])
-
+    print(values)
     # Converting all values from string to floats
     for inner in values:
         for index, string in enumerate(inner):
@@ -131,8 +136,8 @@ def toHeatmap(service, semester):
     techsList = transpose(techsList)
 
     # Update Google sheet
-    service.spreadsheets().values().update(spreadsheetId="", range= semester + "!C33:G54", valueInputOption="USER_ENTERED", body={"values" : techsList}).execute()
-    service.spreadsheets().values().update(spreadsheetId="", range= semester + "!J33:N54", valueInputOption="USER_ENTERED", body={"values" : leadsList}).execute()
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!C33:G54", valueInputOption="USER_ENTERED", body={"values" : techsList}).execute()
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!J33:N54", valueInputOption="USER_ENTERED", body={"values" : leadsList}).execute()
 
 # https://www.geeksforgeeks.org/python-transpose-elements-of-two-dimensional-list/
 # Python program to get transpose 
