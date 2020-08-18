@@ -41,32 +41,36 @@ def main():
 
     ssId = input("Input Speadsheet ID (The string after URL): ")
 
-    print("")
-    print("")
-    print("Put custom Humanity report into " + ssId)
-    print("") # Google Sheets URL
-    print("")
-    print("Humanity > Reports > Custom Reports")
-    print("Report Type: Shifts Scheduled, This Week")
-    print("Select Employee, Start Day, Start Time, End Time")
-    print("Save as CSV and replace values in Google Sheets Report")
-    print("")
-    print("")
-    print("Put custom Humanity report into " + ssId)
-    print("") # Google Sheets URL
-    print("")
-    print("Humanity > Reports > Daily Peak Hours")
-    print("Select This Week, 30 minutes, Location: LSU Res Life")
-    print("Save as CSV and replace values in Google Sheets Report")
-    print("")
-    print('In Help Desk Schedules Document (), duplicate "Default" and rename it to current Semester') # Google Sheets URL
-    print("")
     semester = input("Input Semester Name: ")
 
-    #toSchedule(service, semester, ssId)
+    print("")
+    print('Duplicate the sheet called "Default" and rename it to "' + semester + '"')
+    print("")
+
+    toSchedule(service, semester, ssId)
     toHeatmap(service, semester, ssId)
 
+    print("Complete.")
+
 def toSchedule(service, semester, ssId):
+    shouldSchedule = input("Humanity Report to Schedule? (Y or N)").lower()
+    if (shouldSchedule[0] == "n"):
+        return
+    elif (shouldSchedule[0] != "y"):
+        return toSchedule(service, semester, ssId)
+
+    print("")
+    print("")
+    print("Navigate to Humanity > Reports > Custom Reports")
+    print("Report Type: Shifts Scheduled, This Week - Apply")
+    print("Select Employee, Start Day, Start Time, End Time - Apply")
+    print("Save as CSV")
+    print('Create a new sheet under "Help Desk Schedules" and paste the values from the Humanity Report into it')
+    print("")
+    print("")
+    input("Press Enter when the above steps are complete.")
+    print("")
+
     sheet = service.spreadsheets()
     result = sheet.values().get(spreadsheetId=ssId, range="A:D").execute()
     values = result.get('values', [])
@@ -109,12 +113,32 @@ def toSchedule(service, semester, ssId):
 
     # Update Google sheet
     service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!A3:AE", valueInputOption="USER_ENTERED", body={"values" : employeesArr}).execute()
+    print("You may delete the sheet with Humanity Report info")
+    print("")
 
 def toHeatmap(service, semester, ssId):
+
+    shouldHeatmap = input("Humanity Report to Heatmap? (Y or N)").lower()
+    if (shouldHeatmap[0] == "n"):
+        return
+    elif (shouldHeatmap[0] != "y"):
+        return toHeatmap(service, semester, ssId)
+
+    print("")
+    print("")
+    print("Navigate to Humanity > Reports > Daily Peak Hours")
+    print("Select This Week, 30 minutes, Location: LSU Res Life")
+    print("Save as CSV")
+    print('Create a new sheet under "Help Desk Schedules" and paste the values from the Humanity Report into it')
+    print("")
+    print("")
+    input("Press Enter when the above steps are complete.")
+    print("")
+
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=ssId, range="U3:AO16").execute()
+    result = sheet.values().get(spreadsheetId=ssId, range="U2:AO19").execute()
     values = result.get('values', [])
-    print(values)
+    
     # Converting all values from string to floats
     for inner in values:
         for index, string in enumerate(inner):
@@ -127,17 +151,20 @@ def toHeatmap(service, semester, ssId):
         while len(inner) < 21:
             inner.append(0)
 
-    # Only get rows corresponding to correct employee group
-    leadsList = [values[0]] + [values[3]] + [values[6]] + [values[9]] + [values[12]]
-    techsList = [values[1]] + [values[4]] + [values[7]] + [values[10]] + [values[13]]
+    # Only get rows (weekdays) corresponding to correct employee group
+    techsList = [values[0]] + [values[3]] + [values[6]] + [values[9]] + [values[12]]
+    leadsList = [values[1]] + [values[4]] + [values[7]] + [values[10]] + [values[13]]
 
     # Transpose lists
-    leadsList = transpose(leadsList)
     techsList = transpose(techsList)
+    leadsList = transpose(leadsList)
 
     # Update Google sheet
     service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!C33:G54", valueInputOption="USER_ENTERED", body={"values" : techsList}).execute()
     service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!J33:N54", valueInputOption="USER_ENTERED", body={"values" : leadsList}).execute()
+
+    print("You may delete the sheet with Humanity Report info")
+    print("")
 
 # https://www.geeksforgeeks.org/python-transpose-elements-of-two-dimensional-list/
 # Python program to get transpose 
@@ -146,7 +173,6 @@ def transpose(l1):
     l2 = []
     # iterate over list l1 to the length of an item  
     for i in range(len(l1[0])): 
-        # print(i) 
         row =[] 
         for item in l1: 
             # appending to new list with values and index positions 
