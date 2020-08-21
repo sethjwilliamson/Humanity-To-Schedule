@@ -136,7 +136,7 @@ def toHeatmap(service, semester, ssId):
     print("")
 
     sheet = service.spreadsheets()
-    result = sheet.values().get(spreadsheetId=ssId, range="U2:AO19").execute()
+    result = sheet.values().get(spreadsheetId=ssId, range="U2:AO27").execute()
     values = result.get('values', [])
     
     # Converting all values from string to floats
@@ -151,17 +151,38 @@ def toHeatmap(service, semester, ssId):
         while len(inner) < 21:
             inner.append(0)
 
+    print(len(values))
+
     # Only get rows (weekdays) corresponding to correct employee group
-    techsList = [values[0]] + [values[3]] + [values[6]] + [values[9]] + [values[12]]
-    leadsList = [values[1]] + [values[4]] + [values[7]] + [values[10]] + [values[13]]
+    techsListOnCampus = [values[0]] + [values[5]] + [values[10]] + [values[15]] + [values[20]]
+    leadsListOnCampus = [values[1]] + [values[6]] + [values[11]] + [values[16]] + [values[21]]
+    leadsListWFH = [values[2]] + [values[7]] + [values[12]] + [values[17]] + [values[22]]
+    techsListWFH = [values[3]] + [values[8]] + [values[13]] + [values[18]] + [values[23]]
 
     # Transpose lists
-    techsList = transpose(techsList)
-    leadsList = transpose(leadsList)
+    techsListOnCampus = transpose(techsListOnCampus)
+    leadsListOnCampus = transpose(leadsListOnCampus)
+    leadsListWFH = transpose(leadsListWFH)
+    techsListWFH = transpose(techsListWFH)
+
+    techsList = addMatrices(techsListOnCampus, techsListWFH)
+    leadsList = addMatrices(leadsListOnCampus, leadsListWFH)
+
+    WFHList = addMatrices(leadsListWFH, techsListWFH)
+    onCampusList = addMatrices(techsListOnCampus, leadsListOnCampus)
+    
+    fullList = addMatrices(leadsList, techsList)
+
+    print(techsList)
+    print(fullList)
 
     # Update Google sheet
-    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!C33:G54", valueInputOption="USER_ENTERED", body={"values" : techsList}).execute()
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!C33:G54", valueInputOption="USER_ENTERED", body={"values" : fullList}).execute()
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!Q33:U54", valueInputOption="USER_ENTERED", body={"values" : techsList}).execute()
     service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!J33:N54", valueInputOption="USER_ENTERED", body={"values" : leadsList}).execute()
+
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!C56:G76", valueInputOption="USER_ENTERED", body={"values" : onCampusList}).execute()
+    service.spreadsheets().values().update(spreadsheetId=ssId, range= semester + "!J56:N76", valueInputOption="USER_ENTERED", body={"values" : WFHList}).execute()
 
     print("You may delete the sheet with Humanity Report info")
     print("")
@@ -181,5 +202,17 @@ def transpose(l1):
         l2.append(row) 
     return l2 
 
+def addMatrices(m1, m2):
+    result = []
+
+    for i in range(len(m1)):
+        result.append([])
+        for j in range(len(m1[i])):
+            result[i].append(m1[i][j] + m2[i][j])
+        
+    return result
+
+
 if __name__ == '__main__':
     main()
+
